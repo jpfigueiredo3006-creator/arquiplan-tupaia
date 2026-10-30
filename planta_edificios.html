@@ -1,0 +1,2204 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ArquiPlan 3D - Construtor de Casas & Edifícios</title>
+    <meta name="description" content="Crie plantas de casas e edifícios, personalize o tamanho, adicione móveis detalhados e entre dentro da construção em primeira pessoa (3D FPS).">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --bg-panel: rgba(30, 41, 59, 0.88);
+            --bg-panel-solid: #1e293b;
+            --border-ui: rgba(255, 255, 255, 0.12);
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --accent: #10b981;
+            --accent-warm: #f59e0b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --radius-md: 10px;
+            --radius-lg: 16px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-main);
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        /* 3D Canvas Viewport */
+        #viewport-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            outline: none;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Top Header Bar */
+        .top-navbar {
+            position: absolute;
+            top: 14px;
+            left: 14px;
+            right: 14px;
+            height: 58px;
+            background: var(--bg-panel);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--border-ui);
+            border-radius: var(--radius-lg);
+            z-index: 20;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+        }
+
+        .brand-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-logo {
+            width: 38px;
+            height: 38px;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
+        }
+
+        .brand-title h1 {
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+        }
+
+        .brand-title p {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .mode-toggle-group {
+            display: flex;
+            background: rgba(15, 23, 42, 0.6);
+            padding: 4px;
+            border-radius: 12px;
+            border: 1px solid var(--border-ui);
+            gap: 4px;
+        }
+
+        .mode-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .mode-btn:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .mode-btn.active {
+            background: var(--primary);
+            color: #fff;
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
+        }
+
+        .action-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tool-btn {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid var(--border-ui);
+            color: var(--text-main);
+            padding: 7px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tool-btn:hover {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-walk {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: #fff;
+            border: none;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);
+        }
+
+        .btn-walk:hover {
+            background: linear-gradient(135deg, #059669, #047857);
+            transform: translateY(-1px);
+        }
+
+        /* Left Catalog Panel */
+        .catalog-panel {
+            position: absolute;
+            top: 84px;
+            left: 14px;
+            bottom: 14px;
+            width: 290px;
+            background: var(--bg-panel);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--border-ui);
+            border-radius: var(--radius-lg);
+            z-index: 20;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+            transition: transform 0.3s ease;
+        }
+
+        .panel-header {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border-ui);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .panel-header h2 {
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+        }
+
+        .category-tabs {
+            display: flex;
+            overflow-x: auto;
+            padding: 8px 10px;
+            gap: 6px;
+            border-bottom: 1px solid var(--border-ui);
+            scrollbar-width: none;
+        }
+
+        .category-tabs::-webkit-scrollbar {
+            display: none;
+        }
+
+        .cat-tab {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-ui);
+            color: var(--text-muted);
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .cat-tab.active {
+            background: var(--primary);
+            color: #fff;
+            border-color: var(--primary);
+        }
+
+        .items-grid {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            align-content: start;
+        }
+
+        .item-card {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-ui);
+            border-radius: 10px;
+            padding: 10px 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .item-card:hover {
+            background: rgba(59, 130, 246, 0.15);
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .item-icon {
+            font-size: 26px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .item-name {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-main);
+            line-height: 1.2;
+        }
+
+        .item-badge {
+            font-size: 9px;
+            background: rgba(255, 255, 255, 0.08);
+            padding: 2px 5px;
+            border-radius: 4px;
+            color: var(--text-muted);
+        }
+
+        /* Right Properties / Controls Panel */
+        .properties-panel {
+            position: absolute;
+            top: 84px;
+            right: 14px;
+            width: 280px;
+            background: var(--bg-panel);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--border-ui);
+            border-radius: var(--radius-lg);
+            z-index: 20;
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+            max-height: calc(100vh - 100px);
+            overflow-y: auto;
+        }
+
+        .prop-section {
+            border-bottom: 1px solid var(--border-ui);
+            padding-bottom: 12px;
+        }
+
+        .prop-section:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .section-title {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .control-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 12px;
+        }
+
+        .control-row label {
+            color: var(--text-muted);
+        }
+
+        .control-row .val {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+            color: #60a5fa;
+        }
+
+        .range-slider {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            outline: none;
+            appearance: none;
+            -webkit-appearance: none;
+            cursor: pointer;
+            margin-bottom: 10px;
+        }
+
+        .range-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--primary);
+            cursor: pointer;
+            box-shadow: 0 0 6px rgba(59, 130, 246, 0.7);
+        }
+
+        .select-input {
+            width: 100%;
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid var(--border-ui);
+            color: #fff;
+            padding: 8px 10px;
+            border-radius: 8px;
+            font-size: 12px;
+            outline: none;
+            cursor: pointer;
+            margin-bottom: 8px;
+        }
+
+        .btn-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+            margin-top: 6px;
+        }
+
+        .action-sub-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-ui);
+            color: var(--text-main);
+            padding: 6px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            transition: all 0.2s;
+        }
+
+        .action-sub-btn:hover {
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .action-sub-btn.danger {
+            color: #f87171;
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+
+        .action-sub-btn.danger:hover {
+            background: rgba(239, 68, 68, 0.2);
+        }
+
+        /* First Person Overlay (HUD) */
+        #fps-hud {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 100;
+            pointer-events: none;
+            display: none;
+        }
+
+        .crosshair {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 12px;
+            height: 12px;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+        }
+
+        .crosshair::before, .crosshair::after {
+            content: '';
+            position: absolute;
+            background: rgba(255, 255, 255, 0.85);
+        }
+
+        .crosshair::before {
+            top: 5px;
+            left: 0;
+            width: 12px;
+            height: 2px;
+        }
+
+        .crosshair::after {
+            top: 0;
+            left: 5px;
+            width: 2px;
+            height: 12px;
+        }
+
+        .fps-instructions {
+            position: absolute;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(8px);
+            border: 1px solid var(--border-ui);
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            color: #e2e8f0;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+        }
+
+        .key-badge {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            color: #38bdf8;
+        }
+
+        .exit-fps-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            pointer-events: auto;
+            background: rgba(239, 68, 68, 0.85);
+            color: #fff;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+        }
+
+        /* Floor Quick Indicator */
+        .floor-indicator {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(8px);
+            border: 1px solid var(--border-ui);
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 700;
+            color: #38bdf8;
+            pointer-events: auto;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .floor-nav-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: #fff;
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        /* 2D Canvas Overlay for Blueprint */
+        #blueprint-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 5;
+            background: #0f172a;
+            display: none;
+        }
+
+        /* Toast notifications */
+        .toast {
+            position: absolute;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(30, 41, 59, 0.95);
+            border: 1px solid var(--primary);
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s, transform 0.3s;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translate(-50%, -10px);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Top Navigation Bar -->
+    <header class="top-navbar" id="topNavbar">
+        <div class="brand-section">
+            <div class="brand-logo">📐</div>
+            <div class="brand-title">
+                <h1>ArquiPlan 3D</h1>
+                <p>Plantas de Casas, Prédios & Móveis</p>
+            </div>
+        </div>
+
+        <!-- Mode Selectors -->
+        <div class="mode-toggle-group">
+            <button class="mode-btn active" id="btnMode3D" title="Visão 3D Orbital Isométrica">
+                <span>🌐</span> 3D Orbital
+            </button>
+            <button class="mode-btn" id="btnMode2D" title="Planta Baixa Técnica 2D">
+                <span>🗺️</span> Planta 2D
+            </button>
+            <button class="mode-btn btn-walk" id="btnModeWalk" title="Caminhar por dentro do edifício!">
+                <span>🚶‍♂️</span> Entrar no Edifício
+            </button>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="action-actions">
+            <button class="tool-btn" id="btnPresetHouse" title="Carregar Casa com Quintal e Piscina">
+                🏡 Casa Completa
+            </button>
+            <button class="tool-btn" id="btnPresetBuilding" title="Carregar Edifício Residencial">
+                🏢 Prédio 4 Andares
+            </button>
+            <button class="tool-btn" id="btnToggleDayNight" title="Alternar Dia / Noite">
+                🌙 Noite / Dia
+            </button>
+            <button class="tool-btn" id="btnClearAll" title="Começar terreno vazio">
+                🗑️ Limpar
+            </button>
+        </div>
+    </header>
+
+    <!-- Left Catalog Panel -->
+    <aside class="catalog-panel" id="catalogPanel">
+        <div class="panel-header">
+            <h2>Móveis & Elementos</h2>
+            <span class="item-badge" id="catalogCount">15 itens</span>
+        </div>
+
+        <div class="category-tabs" id="categoryTabs">
+            <button class="cat-tab active" data-cat="all">Todos</button>
+            <button class="cat-tab" data-cat="living">🛋️ Sala</button>
+            <button class="cat-tab" data-cat="bedroom">🛏️ Quarto</button>
+            <button class="cat-tab" data-cat="kitchen">🍳 Cozinha</button>
+            <button class="cat-tab" data-cat="outdoor">🏊 Lazer & Garagem</button>
+            <button class="cat-tab" data-cat="structure">🚪 Portas & Janelas</button>
+            <button class="cat-tab" data-cat="lights">💡 Luzes</button>
+        </div>
+
+        <div class="items-grid" id="itemsGrid">
+            <!-- Items injected by JS -->
+        </div>
+    </aside>
+
+    <!-- Right Properties / Dimensions Panel -->
+    <aside class="properties-panel" id="propertiesPanel">
+        
+        <!-- Edifício & Dimensões -->
+        <div class="prop-section">
+            <div class="section-title">
+                <span>Dimensões do Edifício</span>
+                <span id="buildingTypeBadge" class="item-badge">Casa</span>
+            </div>
+
+            <div class="control-row">
+                <label>Largura do Local:</label>
+                <span class="val" id="valWidth">16 m</span>
+            </div>
+            <input type="range" class="range-slider" id="sliderWidth" min="8" max="36" value="16" step="1">
+
+            <div class="control-row">
+                <label>Comprimento do Local:</label>
+                <span class="val" id="valDepth">18 m</span>
+            </div>
+            <input type="range" class="range-slider" id="sliderDepth" min="8" max="40" value="18" step="1">
+
+            <div class="control-row">
+                <label>Pé-direito (Altura):</label>
+                <span class="val" id="valHeight">3.0 m</span>
+            </div>
+            <input type="range" class="range-slider" id="sliderHeight" min="2.5" max="4.5" value="3.0" step="0.1">
+
+            <div class="control-row">
+                <label>Andares:</label>
+                <span class="val" id="valFloors">1 Andar</span>
+            </div>
+            <input type="range" class="range-slider" id="sliderFloors" min="1" max="8" value="1" step="1">
+
+            <div class="control-row">
+                <label>Visualização de Andar:</label>
+            </div>
+            <select class="select-input" id="selectFloorView">
+                <option value="all">Ver Prédio Completo</option>
+                <option value="0" selected>Andar Térreo (Aberto)</option>
+                <option value="1">1º Andar</option>
+                <option value="2">2º Andar</option>
+                <option value="3">3º Andar</option>
+            </select>
+        </div>
+
+        <!-- Item Selecionado -->
+        <div class="prop-section" id="sectionSelectedItem">
+            <div class="section-title">
+                <span>Item Selecionado</span>
+            </div>
+            <p id="noSelectionText" style="font-size:12px; color:var(--text-muted); text-align:center; padding:10px;">
+                Clique em qualquer móvel para editar ou reposicionar.
+            </p>
+            <div id="selectedControls" style="display:none;">
+                <div class="control-row">
+                    <label id="selectedItemName" style="font-weight:600; color:#fff;">Sofá 3 Lugares</label>
+                </div>
+                <div class="btn-group">
+                    <button class="action-sub-btn" id="btnRotateItem">
+                        🔄 Girar 45° (R)
+                    </button>
+                    <button class="action-sub-btn danger" id="btnDeleteItem">
+                        🗑️ Excluir (Del)
+                    </button>
+                </div>
+                <div class="btn-group" id="itemSpecificControls" style="margin-top:6px;">
+                    <!-- Light Toggle / Door Toggle injected here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Ajuda Rápida -->
+        <div class="prop-section">
+            <div class="section-title">
+                <span>Atalhos & Controles</span>
+            </div>
+            <div style="font-size:11px; color:var(--text-muted); line-height:1.6;">
+                • <b>Clique</b> em um móvel no catálogo para colocá-lo.<br>
+                • <b>Botão Esquerdo</b>: Girar visão 3D.<br>
+                • <b>Botão Direito</b>: Mover câmera.<br>
+                • <b>Scroll</b>: Zoom in / Zoom out.<br>
+                • <b>Tecla R</b>: Girar móvel selecionado.<br>
+                • <b>Tecla E</b>: Ligar/Desligar luz ou abrir porta.
+            </div>
+        </div>
+
+    </aside>
+
+    <!-- 3D Canvas Container -->
+    <div id="viewport-container"></div>
+
+    <!-- 2D Blueprint Canvas (Hidden by default) -->
+    <canvas id="blueprint-canvas"></canvas>
+
+    <!-- First Person HUD Overlay -->
+    <div id="fps-hud">
+        <div class="crosshair"></div>
+        <div class="floor-indicator">
+            <button class="floor-nav-btn" id="btnFpsFloorDown" title="Descer Andar">▼</button>
+            <span id="fpsFloorLabel">Andar Térreo</span>
+            <button class="floor-nav-btn" id="btnFpsFloorUp" title="Subir Andar">▲</button>
+        </div>
+        <button class="exit-fps-btn" id="btnExitFps">✖ Sair do Modo Entrar (ESC)</button>
+        <div class="fps-instructions">
+            <div><span class="key-badge">W</span> <span class="key-badge">A</span> <span class="key-badge">S</span> <span class="key-badge">D</span> Andar</div>
+            <div><span class="key-badge">MOUSE</span> Olhar ao redor</div>
+            <div><span class="key-badge">SHIFT</span> Correr</div>
+            <div><span class="key-badge">E</span> Interagir com Luz / Porta</div>
+            <div><span class="key-badge">ESC</span> Voltar à Visão Geral</div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">Projeto atualizado!</div>
+
+    <!-- Three.js and Controls (Loaded locally) -->
+    <script src="three.min.js"></script>
+    <script src="OrbitControls.js"></script>
+    <script src="PointerLockControls.js"></script>
+
+    <script>
+        /* =========================================================================
+           ArquiPlan 3D - State & Architecture Engine
+           ========================================================================= */
+
+        const state = {
+            mode: '3D', // '3D', '2D', 'WALK'
+            buildingType: 'house', // 'house' | 'building'
+            width: 16,
+            depth: 18,
+            height: 3.0,
+            floors: 1,
+            activeFloor: 0,
+            showRoof: false,
+            isNight: false,
+            selectedObject: null,
+            items: [], // { id, type, name, mesh, floor, x, z, rotY, data }
+            lights: [], // point lights for interactive illumination
+            doors: [], // doors with toggle open/close
+        };
+
+        // Sound Effects (Web Audio API Synthesizer - Zero External Files)
+        const AudioFX = {
+            ctx: null,
+            init() {
+                if (!this.ctx) {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    this.ctx = new AudioContext();
+                }
+            },
+            playClick() {
+                try {
+                    this.init();
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(800, this.ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(300, this.ctx.currentTime + 0.05);
+                    gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
+                    gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.05);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start();
+                    osc.stop(this.ctx.currentTime + 0.05);
+                } catch(e) {}
+            },
+            playSwitch() {
+                try {
+                    this.init();
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(1400, this.ctx.currentTime);
+                    gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.07);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start();
+                    osc.stop(this.ctx.currentTime + 0.07);
+                } catch(e) {}
+            },
+            playDoor() {
+                try {
+                    this.init();
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(160, this.ctx.currentTime);
+                    osc.frequency.linearRampToValueAtTime(220, this.ctx.currentTime + 0.18);
+                    gain.gain.setValueAtTime(0.08, this.ctx.currentTime);
+                    gain.gain.linearRampToValueAtTime(0.001, this.ctx.currentTime + 0.2);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start();
+                    osc.stop(this.ctx.currentTime + 0.2);
+                } catch(e) {}
+            }
+        };
+
+        // Item Catalog Definition (All requested furniture & elements)
+        const CATALOG = [
+            // Sala
+            { id: 'sofa', name: 'Sofá 3 Lugares', icon: '🛋️', cat: 'living', w: 2.2, d: 0.9, h: 0.8 },
+            { id: 'coffee_table', name: 'Mesa de Centro', icon: '🪵', cat: 'living', w: 1.1, d: 0.6, h: 0.4 },
+            { id: 'tv_rack', name: 'Televisão & Rack', icon: '📺', cat: 'living', w: 1.8, d: 0.45, h: 1.5 },
+            { id: 'armchair', name: 'Poltrona Confort', icon: '🪑', cat: 'living', w: 0.9, d: 0.85, h: 0.8 },
+
+            // Quarto
+            { id: 'bed_double', name: 'Cama de Casal King', icon: '🛏️', cat: 'bedroom', w: 2.0, d: 2.0, h: 0.7 },
+            { id: 'bed_single', name: 'Cama de Solteiro', icon: '🛌', cat: 'bedroom', w: 1.0, d: 2.0, h: 0.65 },
+            { id: 'wardrobe', name: 'Armário / Guarda-Roupa', icon: '🚪', cat: 'bedroom', w: 2.2, d: 0.6, h: 2.4 },
+            { id: 'clothes_rack', name: 'Arara com Roupas', icon: '👔', cat: 'bedroom', w: 1.2, d: 0.5, h: 1.6 },
+
+            // Cozinha
+            { id: 'fridge', name: 'Geladeira Duplex Inox', icon: '🧊', cat: 'kitchen', w: 0.8, d: 0.75, h: 1.85 },
+            { id: 'stove', name: 'Fogão com Coifa', icon: '🍳', cat: 'kitchen', w: 0.75, d: 0.65, h: 1.6 },
+            { id: 'kitchen_sink', name: 'Pia com Bancada', icon: '🚰', cat: 'kitchen', w: 1.8, d: 0.6, h: 0.9 },
+            { id: 'dining_table', name: 'Mesa de Jantar 6 Lugares', icon: '🍽️', cat: 'kitchen', w: 1.8, d: 1.0, h: 0.76 },
+
+            // Lazer & Garagem
+            { id: 'pool', name: 'Piscina com Deck', icon: '🏊', cat: 'outdoor', w: 6.0, d: 3.5, h: 1.4 },
+            { id: 'garage_area', name: 'Garagem Coberta', icon: '🅿️', cat: 'outdoor', w: 4.5, d: 6.0, h: 2.8 },
+            { id: 'car', name: 'Veículo / Carro SUV', icon: '🚗', cat: 'outdoor', w: 1.9, d: 4.2, h: 1.55 },
+
+            // Portas & Janelas
+            { id: 'door', name: 'Porta de Madeira', icon: '🚪', cat: 'structure', w: 0.9, d: 0.1, h: 2.1 },
+            { id: 'window', name: 'Janela de Vidro Blindex', icon: '🪟', cat: 'structure', w: 1.6, d: 0.1, h: 1.2 },
+
+            // Luzes
+            { id: 'ceiling_light', name: 'Lustre / Luz de Teto', icon: '💡', cat: 'lights', w: 0.4, d: 0.4, h: 0.3 },
+            { id: 'floor_lamp', name: 'Abajur de Chão', icon: '🏮', cat: 'lights', w: 0.4, d: 0.4, h: 1.5 }
+        ];
+
+        /* =========================================================================
+           Three.js Scene Setup
+           ========================================================================= */
+        const container = document.getElementById('viewport-container');
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x0f172a);
+        scene.fog = new THREE.FogExp2(0x0f172a, 0.012);
+
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(24, 20, 26);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        container.appendChild(renderer.domElement);
+
+        // Orbit Controls
+        const orbitControls = new THREE.OrbitControls(camera, renderer.domElement);
+        orbitControls.enableDamping = true;
+        orbitControls.dampingFactor = 0.05;
+        orbitControls.maxPolarAngle = Math.PI / 2 - 0.02; // Não ir para debaixo do chão
+        orbitControls.minDistance = 2;
+        orbitControls.maxDistance = 120;
+        orbitControls.target.set(0, 1.5, 0);
+
+        // First Person (FPS) Controls
+        const fpsControls = new THREE.PointerLockControls(camera, document.body);
+        const fpsState = {
+            moveForward: false,
+            moveBackward: false,
+            moveLeft: false,
+            moveRight: false,
+            canJump: false,
+            velocity: new THREE.Vector3(),
+            direction: new THREE.Vector3(),
+            speed: 8.0,
+            sprint: 1.0,
+            eyeHeight: 1.65
+        };
+
+        // Lighting System
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.65);
+        scene.add(ambientLight);
+
+        const sunLight = new THREE.DirectionalLight(0xfff5e6, 1.2);
+        sunLight.position.set(28, 45, 20);
+        sunLight.castShadow = true;
+        sunLight.shadow.mapSize.width = 2048;
+        sunLight.shadow.mapSize.height = 2048;
+        sunLight.shadow.camera.near = 0.5;
+        sunLight.shadow.camera.far = 150;
+        const d = 35;
+        sunLight.shadow.camera.left = -d;
+        sunLight.shadow.camera.right = d;
+        sunLight.shadow.camera.top = d;
+        sunLight.shadow.camera.bottom = -d;
+        sunLight.shadow.bias = -0.0005;
+        scene.add(sunLight);
+
+        // Groups
+        const groundGroup = new THREE.Group();
+        const buildingGroup = new THREE.Group();
+        const itemsGroup = new THREE.Group();
+        scene.add(groundGroup);
+        scene.add(buildingGroup);
+        scene.add(itemsGroup);
+
+        /* =========================================================================
+           Materials & Textures Generation
+           ========================================================================= */
+        function createWoodTexture() {
+            const c = document.createElement('canvas');
+            c.width = 256; c.height = 256;
+            const ctx = c.getContext('2d');
+            ctx.fillStyle = '#b47b4d';
+            ctx.fillRect(0, 0, 256, 256);
+            for(let i=0; i<40; i++) {
+                ctx.fillStyle = i%2 === 0 ? '#9b6438' : '#c88c5e';
+                ctx.fillRect(0, i*6.4, 256, 3.2);
+            }
+            const texture = new THREE.CanvasTexture(c);
+            texture.wrapS = THREE.RepeatWrapping;
+            texture.wrapT = THREE.RepeatWrapping;
+            texture.repeat.set(4, 4);
+            return texture;
+        }
+
+        function createTileTexture() {
+            const c = document.createElement('canvas');
+            c.width = 256; c.height = 256;
+            const ctx = c.getContext('2d');
+            ctx.fillStyle = '#e2e8f0';
+            ctx.fillRect(0, 0, 256, 256);
+            ctx.strokeStyle = '#94a3b8';
+            ctx.lineWidth = 3;
+            ctx.strokeRect(0, 0, 256, 256);
+            ctx.strokeRect(128, 0, 0, 256);
+            ctx.strokeRect(0, 128, 256, 0);
+            const texture = new THREE.CanvasTexture(c);
+            texture.wrapS = THREE.RepeatWrapping;
+            texture.wrapT = THREE.RepeatWrapping;
+            texture.repeat.set(6, 6);
+            return texture;
+        }
+
+        function createGrassTexture() {
+            const c = document.createElement('canvas');
+            c.width = 128; c.height = 128;
+            const ctx = c.getContext('2d');
+            ctx.fillStyle = '#1e3a1f';
+            ctx.fillRect(0, 0, 128, 128);
+            for(let i=0; i<300; i++) {
+                ctx.fillStyle = Math.random() > 0.5 ? '#2d5a27' : '#163017';
+                ctx.fillRect(Math.random()*128, Math.random()*128, 2, 4);
+            }
+            const texture = new THREE.CanvasTexture(c);
+            texture.wrapS = THREE.RepeatWrapping;
+            texture.wrapT = THREE.RepeatWrapping;
+            texture.repeat.set(20, 20);
+            return texture;
+        }
+
+        const materials = {
+            grass: new THREE.MeshStandardMaterial({ map: createGrassTexture(), roughness: 0.9, metalness: 0.1 }),
+            floorWood: new THREE.MeshStandardMaterial({ map: createWoodTexture(), roughness: 0.4, metalness: 0.1 }),
+            floorTiles: new THREE.MeshStandardMaterial({ map: createTileTexture(), roughness: 0.2, metalness: 0.1 }),
+            wallWhite: new THREE.MeshStandardMaterial({ color: 0xf1f5f9, roughness: 0.6 }),
+            wallAccent: new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.5 }),
+            glass: new THREE.MeshPhysicalMaterial({ color: 0x88ccff, transparent: true, opacity: 0.45, roughness: 0.1, transmission: 0.9, thickness: 0.1 }),
+            water: new THREE.MeshStandardMaterial({ color: 0x0284c7, roughness: 0.1, metalness: 0.2, transparent: true, opacity: 0.8 }),
+            waterGlow: new THREE.MeshBasicMaterial({ color: 0x38bdf8 }),
+            asphalt: new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.9 }),
+            metalChrome: new THREE.MeshStandardMaterial({ color: 0xd1d5db, metalness: 0.9, roughness: 0.2 }),
+            fabricNavy: new THREE.MeshStandardMaterial({ color: 0x2563eb, roughness: 0.85 }),
+            fabricGrey: new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.85 }),
+            woodDark: new THREE.MeshStandardMaterial({ color: 0x5c3a21, roughness: 0.6 }),
+            lightGlow: new THREE.MeshBasicMaterial({ color: 0xfffbeb })
+        };
+
+        /* =========================================================================
+           Building & Floor Generator
+           ========================================================================= */
+        function rebuildBuilding() {
+            // Limpa edifícios anteriores
+            while(buildingGroup.children.length > 0) {
+                const obj = buildingGroup.children[0];
+                buildingGroup.remove(obj);
+            }
+            while(groundGroup.children.length > 0) {
+                groundGroup.remove(groundGroup.children[0]);
+            }
+
+            const W = state.width;
+            const D = state.depth;
+            const H = state.height;
+            const F = state.floors;
+            const activeF = state.activeFloor;
+
+            // Terreno Gramado Amplo
+            const grassGeo = new THREE.PlaneGeometry(W * 3.5, D * 3.5);
+            const grassMesh = new THREE.Mesh(grassGeo, materials.grass);
+            grassMesh.rotation.x = -Math.PI / 2;
+            grassMesh.position.y = -0.01;
+            grassMesh.receiveShadow = true;
+            groundGroup.add(grassMesh);
+
+            // Calçada perimetral e base de concreto
+            const padGeo = new THREE.BoxGeometry(W + 3, 0.2, D + 3);
+            const padMesh = new THREE.Mesh(padGeo, materials.asphalt);
+            padMesh.position.set(0, 0.1, 0);
+            padMesh.receiveShadow = true;
+            groundGroup.add(padMesh);
+
+            // Gerador de Andares
+            for (let f = 0; f < F; f++) {
+                // Se estiver no modo de visualização de andar único e não for esse andar, pula
+                if (state.mode === '3D' && activeF !== 'all' && activeF != f) {
+                    continue;
+                }
+
+                const floorY = f * H + 0.2;
+                const floorContainer = new THREE.Group();
+                floorContainer.position.y = floorY;
+
+                // Laje / Piso do Andar
+                const floorMat = f === 0 ? materials.floorWood : materials.floorTiles;
+                const floorGeo = new THREE.BoxGeometry(W, 0.2, D);
+                const floorMesh = new THREE.Mesh(floorGeo, floorMat);
+                floorMesh.position.set(0, 0.1, 0);
+                floorMesh.receiveShadow = true;
+                floorContainer.add(floorMesh);
+
+                // Paredes Externas do Andar (com aberturas arquitetônicas)
+                const wallThick = 0.25;
+                const wallH = H - 0.2;
+
+                // Parede Traseira
+                const backWallGeo = new THREE.BoxGeometry(W, wallH, wallThick);
+                const backWall = new THREE.Mesh(backWallGeo, materials.wallWhite);
+                backWall.position.set(0, wallH / 2 + 0.2, -D / 2 + wallThick / 2);
+                backWall.castShadow = true;
+                backWall.receiveShadow = true;
+                floorContainer.add(backWall);
+
+                // Parede Esquerda (com vão de janela)
+                const leftWallGeo = new THREE.BoxGeometry(wallThick, wallH, D);
+                const leftWall = new THREE.Mesh(leftWallGeo, materials.wallWhite);
+                leftWall.position.set(-W / 2 + wallThick / 2, wallH / 2 + 0.2, 0);
+                leftWall.castShadow = true;
+                leftWall.receiveShadow = true;
+                floorContainer.add(leftWall);
+
+                // Parede Direita
+                const rightWallGeo = new THREE.BoxGeometry(wallThick, wallH, D);
+                const rightWall = new THREE.Mesh(rightWallGeo, materials.wallWhite);
+                rightWall.position.set(W / 2 - wallThick / 2, wallH / 2 + 0.2, 0);
+                rightWall.castShadow = true;
+                rightWall.receiveShadow = true;
+                floorContainer.add(rightWall);
+
+                // Parede Frontal (Dividida para porta de entrada)
+                const frontSegW = (W - 2.0) / 2;
+                const frontL = new THREE.Mesh(new THREE.BoxGeometry(frontSegW, wallH, wallThick), materials.wallWhite);
+                frontL.position.set(-W / 2 + frontSegW / 2, wallH / 2 + 0.2, D / 2 - wallThick / 2);
+                frontL.castShadow = true;
+                frontL.receiveShadow = true;
+                floorContainer.add(frontL);
+
+                const frontR = new THREE.Mesh(new THREE.BoxGeometry(frontSegW, wallH, wallThick), materials.wallWhite);
+                frontR.position.set(W / 2 - frontSegW / 2, wallH / 2 + 0.2, D / 2 - wallThick / 2);
+                frontR.castShadow = true;
+                frontR.receiveShadow = true;
+                floorContainer.add(frontR);
+
+                // Viga sobre a porta principal
+                const doorLintel = new THREE.Mesh(new THREE.BoxGeometry(2.0, wallH - 2.3, wallThick), materials.wallAccent);
+                doorLintel.position.set(0, wallH - (wallH - 2.3) / 2 + 0.2, D / 2 - wallThick / 2);
+                floorContainer.add(doorLintel);
+
+                // Paredes Divisórias Internas (Sala, Quarto, Cozinha)
+                // Divisória Sala / Cozinha
+                const intWall1 = new THREE.Mesh(new THREE.BoxGeometry(W * 0.45, wallH, 0.18), materials.wallWhite);
+                intWall1.position.set(-W * 0.25, wallH / 2 + 0.2, 0);
+                intWall1.castShadow = true;
+                intWall1.receiveShadow = true;
+                floorContainer.add(intWall1);
+
+                // Divisória Quarto / Corredor
+                const intWall2 = new THREE.Mesh(new THREE.BoxGeometry(0.18, wallH, D * 0.45), materials.wallWhite);
+                intWall2.position.set(W * 0.15, wallH / 2 + 0.2, -D * 0.25);
+                intWall2.castShadow = true;
+                intWall2.receiveShadow = true;
+                floorContainer.add(intWall2);
+
+                // Teto / Laje superior (se for prédio completo ou modo andar de primeira pessoa)
+                if (state.mode === 'WALK' || activeF === 'all' || f < F - 1) {
+                    const roofGeo = new THREE.BoxGeometry(W, 0.2, D);
+                    const roofMesh = new THREE.Mesh(roofGeo, materials.wallWhite);
+                    roofMesh.position.set(0, H + 0.1, 0);
+                    roofMesh.receiveShadow = true;
+                    floorContainer.add(roofMesh);
+                }
+
+                // Luz ambiente padrão de teto em cada andar
+                const ceilingLamp = new THREE.PointLight(0xfff7ed, 0.75, 14, 1.5);
+                ceilingLamp.position.set(0, H - 0.3, 0);
+                ceilingLamp.castShadow = true;
+                floorContainer.add(ceilingLamp);
+
+                const bulbMesh = new THREE.Mesh(new THREE.SphereGeometry(0.12, 16, 16), materials.lightGlow);
+                bulbMesh.position.set(0, H - 0.3, 0);
+                floorContainer.add(bulbMesh);
+
+                buildingGroup.add(floorContainer);
+            }
+
+            // Atualiza altura e visão de câmera se necessário
+            orbitControls.target.set(0, (F * H) / 3, 0);
+            orbitControls.update();
+        }
+
+        /* =========================================================================
+           Procedural 3D Furniture & Models Builder
+           ========================================================================= */
+        function createItemMesh(type) {
+            const group = new THREE.Group();
+            group.userData.itemType = type;
+
+            switch (type) {
+                case 'sofa': {
+                    // Base do Sofá
+                    const base = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.3, 0.9), materials.fabricNavy);
+                    base.position.y = 0.25;
+                    base.castShadow = true;
+                    group.add(base);
+
+                    // Encosto
+                    const back = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.65, 0.25), materials.fabricNavy);
+                    back.position.set(0, 0.65, -0.32);
+                    back.castShadow = true;
+                    group.add(back);
+
+                    // Braço Esquerdo & Direito
+                    const armL = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.5, 0.9), materials.fabricNavy);
+                    armL.position.set(-1.0, 0.45, 0);
+                    const armR = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.5, 0.9), materials.fabricNavy);
+                    armR.position.set(1.0, 0.45, 0);
+                    group.add(armL, armR);
+
+                    // Almofadas de Assento
+                    for (let i = -1; i <= 1; i++) {
+                        const cushion = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.12, 0.65), materials.fabricGrey);
+                        cushion.position.set(i * 0.6, 0.45, 0.05);
+                        group.add(cushion);
+                    }
+                    break;
+                }
+
+                case 'coffee_table': {
+                    const top = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.06, 0.65), materials.woodDark);
+                    top.position.y = 0.38;
+                    top.castShadow = true;
+                    group.add(top);
+
+                    for (let x of [-0.5, 0.5]) {
+                        for (let z of [-0.25, 0.25]) {
+                            const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.38), materials.metalChrome);
+                            leg.position.set(x, 0.19, z);
+                            group.add(leg);
+                        }
+                    }
+                    break;
+                }
+
+                case 'tv_rack': {
+                    // Rack de madeira
+                    const rack = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.45, 0.45), materials.woodDark);
+                    rack.position.y = 0.25;
+                    rack.castShadow = true;
+                    group.add(rack);
+
+                    // TV Tela Plana 65"
+                    const tvScreen = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.8, 0.04), new THREE.MeshStandardMaterial({ color: 0x0a0a0a, roughness: 0.1 }));
+                    tvScreen.position.set(0, 0.95, 0);
+                    tvScreen.castShadow = true;
+                    group.add(tvScreen);
+
+                    // Base / Pedestal da TV
+                    const tvBase = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.03, 0.25), materials.metalChrome);
+                    tvBase.position.set(0, 0.48, 0);
+                    group.add(tvBase);
+                    break;
+                }
+
+                case 'armchair': {
+                    const seat = new THREE.Mesh(new THREE.BoxGeometry(0.85, 0.3, 0.8), materials.fabricNavy);
+                    seat.position.y = 0.25;
+                    const back = new THREE.Mesh(new THREE.BoxGeometry(0.85, 0.6, 0.2), materials.fabricNavy);
+                    back.position.set(0, 0.65, -0.3);
+                    group.add(seat, back);
+                    break;
+                }
+
+                case 'bed_double': {
+                    // Base da cama de casal
+                    const base = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.35, 2.0), materials.woodDark);
+                    base.position.y = 0.2;
+                    group.add(base);
+
+                    // Colchão
+                    const mat = new THREE.Mesh(new THREE.BoxGeometry(1.9, 0.28, 1.9), materials.wallWhite);
+                    mat.position.y = 0.48;
+                    group.add(mat);
+
+                    // Cabeceira
+                    const headboard = new THREE.Mesh(new THREE.BoxGeometry(2.0, 1.0, 0.15), materials.fabricNavy);
+                    headboard.position.set(0, 0.7, -0.95);
+                    group.add(headboard);
+
+                    // Travesseiros
+                    for (let x of [-0.5, 0.5]) {
+                        const pil = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.1, 0.4), materials.wallWhite);
+                        pil.position.set(x, 0.65, -0.65);
+                        group.add(pil);
+                    }
+                    break;
+                }
+
+                case 'bed_single': {
+                    const base = new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.35, 2.0), materials.woodDark);
+                    base.position.y = 0.2;
+                    const mat = new THREE.Mesh(new THREE.BoxGeometry(0.95, 0.25, 1.9), materials.wallWhite);
+                    mat.position.y = 0.46;
+                    const headboard = new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.9, 0.12), materials.fabricNavy);
+                    headboard.position.set(0, 0.65, -0.95);
+                    group.add(base, mat, headboard);
+                    break;
+                }
+
+                case 'wardrobe': {
+                    // Armário / Guarda-roupa
+                    const body = new THREE.Mesh(new THREE.BoxGeometry(2.2, 2.3, 0.6), materials.wallAccent);
+                    body.position.y = 1.15;
+                    body.castShadow = true;
+                    group.add(body);
+
+                    // Puxadores cromados
+                    for (let x of [-0.6, -0.2, 0.2, 0.6]) {
+                        const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.25), materials.metalChrome);
+                        handle.position.set(x, 1.15, 0.32);
+                        group.add(handle);
+                    }
+                    break;
+                }
+
+                case 'clothes_rack': {
+                    // Arara com roupas
+                    const frame = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.04, 0.04), materials.metalChrome);
+                    frame.position.y = 1.5;
+                    const legL = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 1.5), materials.metalChrome);
+                    legL.position.set(-0.55, 0.75, 0);
+                    const legR = legL.clone();
+                    legR.position.x = 0.55;
+                    group.add(frame, legL, legR);
+
+                    // Roupas penduradas coloridas
+                    const colors = [0xef4444, 0x3b82f6, 0x10b981, 0xf59e0b, 0x8b5cf6, 0xec4899];
+                    for (let i = 0; i < 6; i++) {
+                        const shirt = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.65, 0.35), new THREE.MeshStandardMaterial({ color: colors[i] }));
+                        shirt.position.set(-0.4 + i * 0.16, 1.1, 0);
+                        group.add(shirt);
+                    }
+                    break;
+                }
+
+                case 'fridge': {
+                    // Geladeira Inox Duplex
+                    const fridge = new THREE.Mesh(new THREE.BoxGeometry(0.85, 1.85, 0.75), materials.metalChrome);
+                    fridge.position.y = 0.95;
+                    fridge.castShadow = true;
+                    group.add(fridge);
+
+                    // Divisão do freezer e gavetas
+                    const line = new THREE.Mesh(new THREE.BoxGeometry(0.86, 0.03, 0.02), materials.wallAccent);
+                    line.position.set(0, 1.25, 0.38);
+                    group.add(line);
+                    break;
+                }
+
+                case 'stove': {
+                    // Fogão com forno
+                    const stove = new THREE.Mesh(new THREE.BoxGeometry(0.75, 0.9, 0.65), materials.wallAccent);
+                    stove.position.y = 0.45;
+                    stove.castShadow = true;
+                    group.add(stove);
+
+                    // Vidro do forno
+                    const ovenGlass = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.4, 0.04), materials.glass);
+                    ovenGlass.position.set(0, 0.4, 0.33);
+                    group.add(ovenGlass);
+
+                    // Coifa em cima do fogão
+                    const hood = new THREE.Mesh(new THREE.ConeGeometry(0.45, 0.4, 4), materials.metalChrome);
+                    hood.position.set(0, 1.6, 0);
+                    group.add(hood);
+                    break;
+                }
+
+                case 'kitchen_sink': {
+                    // Pia de Granito com Cuba de Inox
+                    const bench = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.88, 0.65), materials.wallAccent);
+                    bench.position.y = 0.44;
+                    bench.castShadow = true;
+                    group.add(bench);
+
+                    // Cuba de Inox
+                    const sink = new THREE.Mesh(new THREE.BoxGeometry(0.65, 0.02, 0.4), materials.metalChrome);
+                    sink.position.set(0, 0.89, 0);
+                    group.add(sink);
+
+                    // Torneira Gourmet
+                    const faucet = new THREE.Mesh(new THREE.TorusGeometry(0.12, 0.02, 8, 16, Math.PI), materials.metalChrome);
+                    faucet.rotation.z = Math.PI;
+                    faucet.position.set(0, 1.05, -0.15);
+                    group.add(faucet);
+                    break;
+                }
+
+                case 'dining_table': {
+                    // Mesa de Jantar com 4 Cadeiras
+                    const tableTop = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.08, 1.0), materials.woodDark);
+                    tableTop.position.y = 0.74;
+                    tableTop.castShadow = true;
+                    group.add(tableTop);
+
+                    for (let x of [-0.8, 0.8]) {
+                        for (let z of [-0.4, 0.4]) {
+                            const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.72), materials.metalChrome);
+                            leg.position.set(x, 0.36, z);
+                            group.add(leg);
+                        }
+                    }
+
+                    // Cadeiras
+                    for (let side of [-0.65, 0.65]) {
+                        for (let x of [-0.45, 0.45]) {
+                            const chair = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.45, 0.4), materials.fabricGrey);
+                            chair.position.set(x, 0.35, side);
+                            group.add(chair);
+                        }
+                    }
+                    break;
+                }
+
+                case 'pool': {
+                    // Piscina com Deck de Madeira
+                    const deck = new THREE.Mesh(new THREE.BoxGeometry(6.6, 0.25, 4.2), materials.floorWood);
+                    deck.position.y = 0.12;
+                    group.add(deck);
+
+                    // Água Cristalina
+                    const water = new THREE.Mesh(new THREE.BoxGeometry(5.6, 0.2, 3.2), materials.water);
+                    water.position.y = 0.14;
+                    group.add(water);
+
+                    // Escada da Piscina
+                    const ladder = new THREE.Mesh(new THREE.TorusGeometry(0.2, 0.025, 8, 16), materials.metalChrome);
+                    ladder.position.set(-2.5, 0.35, 1.4);
+                    group.add(ladder);
+                    break;
+                }
+
+                case 'garage_area': {
+                    // Garagem coberta com pilares
+                    const roof = new THREE.Mesh(new THREE.BoxGeometry(4.8, 0.2, 6.2), materials.wallAccent);
+                    roof.position.y = 2.8;
+                    roof.castShadow = true;
+                    group.add(roof);
+
+                    // 4 Pilares
+                    for (let x of [-2.2, 2.2]) {
+                        for (let z of [-2.8, 2.8]) {
+                            const pillar = new THREE.Mesh(new THREE.BoxGeometry(0.25, 2.8, 0.25), materials.wallWhite);
+                            pillar.position.set(x, 1.4, z);
+                            group.add(pillar);
+                        }
+                    }
+                    break;
+                }
+
+                case 'car': {
+                    // Automóvel SUV Moderno
+                    const body = new THREE.Mesh(new THREE.BoxGeometry(1.9, 0.75, 4.2), materials.fabricNavy);
+                    body.position.y = 0.65;
+                    body.castShadow = true;
+                    group.add(body);
+
+                    // Cabine de Vidro
+                    const cabin = new THREE.Mesh(new THREE.BoxGeometry(1.7, 0.65, 2.2), materials.glass);
+                    cabin.position.set(0, 1.25, -0.3);
+                    group.add(cabin);
+
+                    // 4 Rodas
+                    for (let x of [-0.95, 0.95]) {
+                        for (let z of [-1.2, 1.2]) {
+                            const wheel = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.35, 0.2, 16), materials.asphalt);
+                            wheel.rotation.z = Math.PI / 2;
+                            wheel.position.set(x, 0.35, z);
+                            group.add(wheel);
+                        }
+                    }
+
+                    // Faróis
+                    const lightL = new THREE.Mesh(new THREE.SphereGeometry(0.1, 8, 8), materials.lightGlow);
+                    lightL.position.set(-0.65, 0.7, 2.1);
+                    const lightR = lightL.clone();
+                    lightR.position.x = 0.65;
+                    group.add(lightL, lightR);
+                    break;
+                }
+
+                case 'door': {
+                    // Batente
+                    const frame = new THREE.Mesh(new THREE.BoxGeometry(1.0, 2.15, 0.12), materials.wallAccent);
+                    frame.position.y = 1.08;
+
+                    // Folha da Porta (Hinged para abrir/fechar!)
+                    const doorLeaf = new THREE.Mesh(new THREE.BoxGeometry(0.9, 2.1, 0.05), materials.woodDark);
+                    doorLeaf.position.set(0.45, 1.05, 0); // Pivot na ponta
+                    doorLeaf.castShadow = true;
+
+                    // Maçaneta
+                    const knob = new THREE.Mesh(new THREE.SphereGeometry(0.035, 8, 8), materials.metalChrome);
+                    knob.position.set(0.8, 1.0, 0.04);
+                    doorLeaf.add(knob);
+
+                    const pivot = new THREE.Group();
+                    pivot.position.set(-0.45, 0, 0);
+                    pivot.add(doorLeaf);
+                    pivot.userData.isOpen = false;
+
+                    group.add(frame, pivot);
+                    group.userData.pivot = pivot;
+                    state.doors.push(group);
+                    break;
+                }
+
+                case 'window': {
+                    // Esquadria da Janela
+                    const frame = new THREE.Mesh(new THREE.BoxGeometry(1.65, 1.25, 0.1), materials.wallAccent);
+                    frame.position.y = 1.4;
+
+                    // Vidro Blindex
+                    const glass = new THREE.Mesh(new THREE.BoxGeometry(1.5, 1.1, 0.02), materials.glass);
+                    glass.position.y = 1.4;
+                    group.add(frame, glass);
+                    break;
+                }
+
+                case 'ceiling_light': {
+                    // Lustre com PointLight Real
+                    const base = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.25, 0.15, 16), materials.metalChrome);
+                    base.position.y = state.height - 0.1;
+                    const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.12, 16, 16), materials.lightGlow);
+                    bulb.position.y = state.height - 0.22;
+
+                    const pointLight = new THREE.PointLight(0xffedd5, 1.2, 12, 1.6);
+                    pointLight.position.y = state.height - 0.25;
+                    pointLight.castShadow = true;
+
+                    group.add(base, bulb, pointLight);
+                    group.userData.pointLight = pointLight;
+                    group.userData.isLightOn = true;
+                    state.lights.push(group);
+                    break;
+                }
+
+                case 'floor_lamp': {
+                    // Abajur de Chão
+                    const base = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.03), materials.metalChrome);
+                    base.position.y = 0.015;
+                    const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 1.5), materials.metalChrome);
+                    pole.position.y = 0.75;
+                    const shade = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.28, 0.35, 16, 1, true), materials.wallWhite);
+                    shade.position.y = 1.4;
+
+                    const pointLight = new THREE.PointLight(0xfff176, 1.0, 8, 1.8);
+                    pointLight.position.y = 1.35;
+
+                    group.add(base, pole, shade, pointLight);
+                    group.userData.pointLight = pointLight;
+                    group.userData.isLightOn = true;
+                    state.lights.push(group);
+                    break;
+                }
+            }
+
+            return group;
+        }
+
+        /* =========================================================================
+           Item Management & Interaction
+           ========================================================================= */
+        function spawnItem(type, customX, customZ, customRot) {
+            AudioFX.playClick();
+            const def = CATALOG.find(c => c.id === type);
+            if (!def) return;
+
+            const mesh = createItemMesh(type);
+            const x = customX !== undefined ? customX : (Math.random() * 4 - 2);
+            const z = customZ !== undefined ? customZ : (Math.random() * 4 - 2);
+            const rotY = customRot !== undefined ? customRot : 0;
+            const floor = state.activeFloor === 'all' ? 0 : parseInt(state.activeFloor) || 0;
+            const y = floor * state.height + 0.2;
+
+            mesh.position.set(x, y, z);
+            mesh.rotation.y = rotY;
+
+            itemsGroup.add(mesh);
+
+            const itemRecord = {
+                id: 'item_' + Date.now() + '_' + Math.floor(Math.random()*1000),
+                type,
+                name: def.name,
+                mesh,
+                floor,
+                x, z, rotY
+            };
+            mesh.userData.itemRecord = itemRecord;
+            state.items.push(itemRecord);
+
+            selectItem(itemRecord);
+            showToast(`${def.name} adicionado!`);
+            draw2DBlueprint();
+            return itemRecord;
+        }
+
+        function selectItem(itemRecord) {
+            // Deseleciona anterior
+            if (state.selectedObject) {
+                unhighlightItem(state.selectedObject.mesh);
+            }
+
+            if (!itemRecord) {
+                state.selectedObject = null;
+                document.getElementById('noSelectionText').style.display = 'block';
+                document.getElementById('selectedControls').style.display = 'none';
+                return;
+            }
+
+            state.selectedObject = itemRecord;
+            highlightItem(itemRecord.mesh);
+
+            document.getElementById('noSelectionText').style.display = 'none';
+            document.getElementById('selectedControls').style.display = 'block';
+            document.getElementById('selectedItemName').textContent = itemRecord.name;
+
+            // Controles específicos de item (ex: ligar luz ou abrir porta)
+            const specContainer = document.getElementById('itemSpecificControls');
+            specContainer.innerHTML = '';
+
+            if (itemRecord.mesh.userData.pointLight) {
+                const btnToggleLight = document.createElement('button');
+                btnToggleLight.className = 'action-sub-btn';
+                btnToggleLight.innerHTML = itemRecord.mesh.userData.isLightOn ? '💡 Apagar Luz' : '💡 Ligar Luz';
+                btnToggleLight.onclick = () => toggleLight(itemRecord.mesh);
+                specContainer.appendChild(btnToggleLight);
+            }
+
+            if (itemRecord.mesh.userData.pivot) {
+                const btnToggleDoor = document.createElement('button');
+                btnToggleDoor.className = 'action-sub-btn';
+                btnToggleDoor.innerHTML = itemRecord.mesh.userData.pivot.userData.isOpen ? '🚪 Fechar Porta' : '🚪 Abrir Porta';
+                btnToggleDoor.onclick = () => toggleDoor(itemRecord.mesh);
+                specContainer.appendChild(btnToggleDoor);
+            }
+        }
+
+        function highlightItem(mesh) {
+            mesh.traverse(child => {
+                if (child.isMesh && child.material) {
+                    child.userData.origEmissive = child.material.emissive ? child.material.emissive.clone() : new THREE.Color(0,0,0);
+                    if (child.material.emissive) {
+                        child.material.emissive.setHex(0x3b82f6);
+                        child.material.emissiveIntensity = 0.35;
+                    }
+                }
+            });
+        }
+
+        function unhighlightItem(mesh) {
+            if (!mesh) return;
+            mesh.traverse(child => {
+                if (child.isMesh && child.material && child.userData.origEmissive) {
+                    if (child.material.emissive) {
+                        child.material.emissive.copy(child.userData.origEmissive);
+                        child.material.emissiveIntensity = 0;
+                    }
+                }
+            });
+        }
+
+        function rotateSelectedItem() {
+            if (!state.selectedObject) return;
+            AudioFX.playClick();
+            state.selectedObject.rotY += Math.PI / 4;
+            state.selectedObject.mesh.rotation.y = state.selectedObject.rotY;
+            draw2DBlueprint();
+        }
+
+        function deleteSelectedItem() {
+            if (!state.selectedObject) return;
+            AudioFX.playClick();
+            itemsGroup.remove(state.selectedObject.mesh);
+            state.items = state.items.filter(i => i.id !== state.selectedObject.id);
+            selectItem(null);
+            showToast('Item removido');
+            draw2DBlueprint();
+        }
+
+        function toggleLight(groupMesh) {
+            AudioFX.playSwitch();
+            const light = groupMesh.userData.pointLight;
+            if (!light) return;
+            groupMesh.userData.isLightOn = !groupMesh.userData.isLightOn;
+            light.intensity = groupMesh.userData.isLightOn ? 1.2 : 0;
+            selectItem(state.selectedObject); // Refresh label
+            showToast(groupMesh.userData.isLightOn ? '💡 Luz Ligada' : '🌑 Luz Apagada');
+        }
+
+        function toggleDoor(groupMesh) {
+            AudioFX.playDoor();
+            const pivot = groupMesh.userData.pivot;
+            if (!pivot) return;
+            pivot.userData.isOpen = !pivot.userData.isOpen;
+            pivot.rotation.y = pivot.userData.isOpen ? Math.PI / 2 : 0;
+            selectItem(state.selectedObject);
+            showToast(pivot.userData.isOpen ? '🚪 Porta Aberta' : '🚪 Porta Fechada');
+        }
+
+        /* =========================================================================
+           Preset Scenes (Casas & Edifícios Prontos)
+           ========================================================================= */
+        function loadPresetHouse() {
+            clearAllItems();
+            state.buildingType = 'house';
+            state.width = 16;
+            state.depth = 18;
+            state.height = 3.0;
+            state.floors = 1;
+            state.activeFloor = 0;
+
+            syncUiControls();
+            rebuildBuilding();
+
+            // Sala de Estar
+            spawnItem('sofa', -3.5, 3.5, Math.PI / 2);
+            spawnItem('coffee_table', -2.2, 3.5, 0);
+            spawnItem('tv_rack', -0.8, 3.5, -Math.PI / 2);
+            spawnItem('ceiling_light', -2.2, 3.5);
+
+            // Quarto Casal
+            spawnItem('bed_double', 4.0, -4.5, 0);
+            spawnItem('wardrobe', 6.0, -2.5, -Math.PI / 2);
+            spawnItem('clothes_rack', 6.0, -5.5, -Math.PI / 2);
+            spawnItem('ceiling_light', 4.0, -4.5);
+
+            // Cozinha
+            spawnItem('kitchen_sink', -5.0, -4.0, Math.PI / 2);
+            spawnItem('stove', -5.0, -2.5, Math.PI / 2);
+            spawnItem('fridge', -5.0, -1.0, Math.PI / 2);
+            spawnItem('dining_table', -2.5, -3.0, 0);
+
+            // Portas e Janelas
+            spawnItem('door', 0, 9.0, 0); // Porta da frente
+            spawnItem('window', -5.0, 9.0, 0);
+            spawnItem('window', 5.0, 9.0, 0);
+
+            // Garagem com Carro
+            spawnItem('garage_area', -12.0, 3.0, 0);
+            spawnItem('car', -12.0, 3.0, 0);
+
+            // Piscina com Deck no Quintal
+            spawnItem('pool', 0, -14.0, 0);
+
+            showToast('🏡 Casa Completa carregada com sucesso!');
+        }
+
+        function loadPresetBuilding() {
+            clearAllItems();
+            state.buildingType = 'building';
+            state.width = 18;
+            state.depth = 18;
+            state.height = 3.0;
+            state.floors = 4;
+            state.activeFloor = 'all';
+
+            syncUiControls();
+            rebuildBuilding();
+
+            // Móveis no térreo
+            spawnItem('sofa', -3.0, 2.0, Math.PI / 2);
+            spawnItem('coffee_table', -1.5, 2.0, 0);
+            spawnItem('tv_rack', 0, 2.0, -Math.PI / 2);
+            spawnItem('dining_table', -3.0, -3.0, 0);
+            spawnItem('bed_double', 4.5, -3.5, 0);
+            spawnItem('wardrobe', 7.0, -3.5, -Math.PI / 2);
+
+            // Carro na frente
+            spawnItem('car', -6.0, 14.0, 0);
+
+            showToast('🏢 Edifício Residencial de 4 Andares criado!');
+        }
+
+        function clearAllItems() {
+            while(itemsGroup.children.length > 0) {
+                itemsGroup.remove(itemsGroup.children[0]);
+            }
+            state.items = [];
+            state.lights = [];
+            state.doors = [];
+            selectItem(null);
+            draw2DBlueprint();
+        }
+
+        function syncUiControls() {
+            document.getElementById('sliderWidth').value = state.width;
+            document.getElementById('valWidth').textContent = state.width + ' m';
+            document.getElementById('sliderDepth').value = state.depth;
+            document.getElementById('valDepth').textContent = state.depth + ' m';
+            document.getElementById('sliderHeight').value = state.height;
+            document.getElementById('valHeight').textContent = state.height.toFixed(1) + ' m';
+            document.getElementById('sliderFloors').value = state.floors;
+            document.getElementById('valFloors').textContent = state.floors + (state.floors > 1 ? ' Andares' : ' Andar');
+            document.getElementById('buildingTypeBadge').textContent = state.floors > 1 ? 'Edifício' : 'Casa';
+            document.getElementById('selectFloorView').value = state.activeFloor;
+        }
+
+        /* =========================================================================
+           First Person Walkthrough Engine (Entrar dentro do Edifício)
+           ========================================================================= */
+        function enterWalkMode() {
+            AudioFX.playClick();
+            state.mode = 'WALK';
+            document.getElementById('fps-hud').style.display = 'block';
+            document.getElementById('topNavbar').style.display = 'none';
+            document.getElementById('catalogPanel').style.display = 'none';
+            document.getElementById('propertiesPanel').style.display = 'none';
+            document.getElementById('blueprint-canvas').style.display = 'none';
+
+            // Posição inicial dentro da sala principal do andar ativo
+            const floor = state.activeFloor === 'all' ? 0 : parseInt(state.activeFloor) || 0;
+            const startY = floor * state.height + fpsState.eyeHeight + 0.2;
+            camera.position.set(0, startY, 4.0);
+            camera.lookAt(0, startY, 0);
+
+            fpsControls.lock();
+            orbitControls.enabled = false;
+            rebuildBuilding(); // Garante teto fechado para sensação imersiva
+
+            showToast('🚶 Você entrou dentro do edifício! Use W, A, S, D para andar.');
+        }
+
+        function exitWalkMode() {
+            fpsControls.unlock();
+            state.mode = '3D';
+            document.getElementById('fps-hud').style.display = 'none';
+            document.getElementById('topNavbar').style.display = 'flex';
+            document.getElementById('catalogPanel').style.display = 'flex';
+            document.getElementById('propertiesPanel').style.display = 'flex';
+            orbitControls.enabled = true;
+
+            // Retorna câmera para visão orbital
+            camera.position.set(24, 20, 26);
+            orbitControls.target.set(0, 2, 0);
+            orbitControls.update();
+            rebuildBuilding();
+        }
+
+        document.getElementById('btnExitFps').addEventListener('click', exitWalkMode);
+
+        fpsControls.addEventListener('unlock', () => {
+            if (state.mode === 'WALK') {
+                exitWalkMode();
+            }
+        });
+
+        // Key Listeners for First-Person Walk
+        window.addEventListener('keydown', (e) => {
+            if (state.mode === 'WALK') {
+                switch (e.code) {
+                    case 'KeyW': case 'ArrowUp': fpsState.moveForward = true; break;
+                    case 'KeyS': case 'ArrowDown': fpsState.moveBackward = true; break;
+                    case 'KeyA': case 'ArrowLeft': fpsState.moveLeft = true; break;
+                    case 'KeyD': case 'ArrowRight': fpsState.moveRight = true; break;
+                    case 'ShiftLeft': case 'ShiftRight': fpsState.sprint = 1.8; break;
+                    case 'KeyE': interactInFront(); break;
+                }
+            } else {
+                if (e.code === 'KeyR') rotateSelectedItem();
+                if (e.code === 'Delete' || e.code === 'Backspace') deleteSelectedItem();
+            }
+        });
+
+        window.addEventListener('keyup', (e) => {
+            if (state.mode === 'WALK') {
+                switch (e.code) {
+                    case 'KeyW': case 'ArrowUp': fpsState.moveForward = false; break;
+                    case 'KeyS': case 'ArrowDown': fpsState.moveBackward = false; break;
+                    case 'KeyA': case 'ArrowLeft': fpsState.moveLeft = false; break;
+                    case 'KeyD': case 'ArrowRight': fpsState.moveRight = false; break;
+                    case 'ShiftLeft': case 'ShiftRight': fpsState.sprint = 1.0; break;
+                }
+            }
+        });
+
+        // Interação em 1ª Pessoa (Abre portas ou liga luzes próximas!)
+        function interactInFront() {
+            // Raycast a partir do centro da tela
+            const raycaster = new THREE.Raycaster();
+            raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
+            const intersects = raycaster.intersectObjects(itemsGroup.children, true);
+
+            if (intersects.length > 0) {
+                let topObj = intersects[0].object;
+                while (topObj.parent && topObj.parent !== itemsGroup) {
+                    topObj = topObj.parent;
+                }
+
+                if (topObj.userData.pivot) {
+                    toggleDoor(topObj);
+                } else if (topObj.userData.pointLight) {
+                    toggleLight(topObj);
+                } else if (topObj.userData.itemRecord) {
+                    showToast(`Você está olhando para: ${topObj.userData.itemRecord.name}`);
+                }
+            }
+        }
+
+        /* =========================================================================
+           2D Blueprint Canvas (Planta Baixa Técnica)
+           ========================================================================= */
+        const canvas2D = document.getElementById('blueprint-canvas');
+        const ctx2D = canvas2D.getContext('2d');
+
+        function resize2DCanvas() {
+            canvas2D.width = window.innerWidth;
+            canvas2D.height = window.innerHeight;
+        }
+
+        function draw2DBlueprint() {
+            if (state.mode !== '2D') return;
+            resize2DCanvas();
+
+            const cw = canvas2D.width;
+            const ch = canvas2D.height;
+            const scale = Math.min(cw / (state.width + 12), ch / (state.depth + 12)) * 0.75;
+            const ox = cw / 2;
+            const oz = ch / 2;
+
+            // Fundo escuro azul arquitetônico
+            ctx2D.fillStyle = '#0f172a';
+            ctx2D.fillRect(0, 0, cw, ch);
+
+            // Grelha milimétrica / técnica
+            ctx2D.strokeStyle = 'rgba(255, 255, 255, 0.06)';
+            ctx2D.lineWidth = 1;
+            const gridSize = scale * 1.0; // 1 metro
+            for (let x = 0; x < cw; x += gridSize) {
+                ctx2D.beginPath(); ctx2D.moveTo(x, 0); ctx2D.lineTo(x, ch); ctx2D.stroke();
+            }
+            for (let y = 0; y < ch; y += gridSize) {
+                ctx2D.beginPath(); ctx2D.moveTo(0, y); ctx2D.lineTo(cw, y); ctx2D.stroke();
+            }
+
+            // Perímetro do Edifício
+            const bw = state.width * scale;
+            const bd = state.depth * scale;
+            const bx = ox - bw / 2;
+            const bz = oz - bd / 2;
+
+            ctx2D.fillStyle = 'rgba(30, 41, 59, 0.7)';
+            ctx2D.fillRect(bx, bz, bw, bd);
+
+            // Paredes Externas Grossas
+            ctx2D.strokeStyle = '#38bdf8';
+            ctx2D.lineWidth = 4;
+            ctx2D.strokeRect(bx, bz, bw, bd);
+
+            // Cotas e Medidas em Metros
+            ctx2D.fillStyle = '#60a5fa';
+            ctx2D.font = '600 13px "JetBrains Mono"';
+            ctx2D.textAlign = 'center';
+            ctx2D.fillText(`↔ Largura: ${state.width}.00 m`, ox, bz - 14);
+            ctx2D.save();
+            ctx2D.translate(bx - 16, oz);
+            ctx2D.rotate(-Math.PI / 2);
+            ctx2D.fillText(`↕ Comprimento: ${state.depth}.00 m`, 0, 0);
+            ctx2D.restore();
+
+            // Divisórias Internas
+            ctx2D.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+            ctx2D.lineWidth = 2;
+            // Parede divisória sala/cozinha
+            ctx2D.beginPath();
+            ctx2D.moveTo(bx + bw * 0.5, bz);
+            ctx2D.lineTo(bx + bw * 0.5, bz + bd * 0.6);
+            ctx2D.stroke();
+
+            // Rótulos dos Cômodos
+            ctx2D.fillStyle = 'rgba(255, 255, 255, 0.5)';
+            ctx2D.font = '700 12px "Plus Jakarta Sans"';
+            ctx2D.fillText('SALA DE ESTAR', bx + bw * 0.25, bz + bd * 0.3);
+            ctx2D.fillText('COZINHA & JANTAR', bx + bw * 0.25, bz + bd * 0.75);
+            ctx2D.fillText('SUÍTE MASTER', bx + bw * 0.75, bz + bd * 0.35);
+
+            // Desenho dos Móveis na Planta
+            const activeF = state.activeFloor === 'all' ? 0 : parseInt(state.activeFloor) || 0;
+            state.items.forEach(item => {
+                if (item.floor !== activeF) return;
+
+                const ix = ox + item.x * scale;
+                const iz = oz + item.z * scale;
+                const def = CATALOG.find(c => c.id === item.type) || { w: 1, d: 1, icon: '📦' };
+                const iw = def.w * scale;
+                const id = def.d * scale;
+
+                ctx2D.save();
+                ctx2D.translate(ix, iz);
+                ctx2D.rotate(item.rotY);
+
+                const isSel = state.selectedObject && state.selectedObject.id === item.id;
+                ctx2D.fillStyle = isSel ? 'rgba(59, 130, 246, 0.5)' : 'rgba(255, 255, 255, 0.15)';
+                ctx2D.strokeStyle = isSel ? '#3b82f6' : '#94a3b8';
+                ctx2D.lineWidth = isSel ? 2 : 1;
+                ctx2D.fillRect(-iw / 2, -id / 2, iw, id);
+                ctx2D.strokeRect(-iw / 2, -id / 2, iw, id);
+
+                // Ícone
+                ctx2D.font = '14px sans-serif';
+                ctx2D.textAlign = 'center';
+                ctx2D.textBaseline = 'middle';
+                ctx2D.fillText(def.icon, 0, 0);
+
+                ctx2D.restore();
+            });
+        }
+
+        /* =========================================================================
+           UI Event Handlers & Catalog Population
+           ========================================================================= */
+        function populateCatalog(category = 'all') {
+            const grid = document.getElementById('itemsGrid');
+            grid.innerHTML = '';
+
+            const filtered = category === 'all' ? CATALOG : CATALOG.filter(c => c.cat === category);
+            document.getElementById('catalogCount').textContent = `${filtered.length} itens`;
+
+            filtered.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'item-card';
+                card.innerHTML = `
+                    <div class="item-icon">${item.icon}</div>
+                    <div class="item-name">${item.name}</div>
+                    <div class="item-badge">${item.w}m x ${item.d}m</div>
+                `;
+                card.onclick = () => spawnItem(item.id);
+                grid.appendChild(card);
+            });
+        }
+
+        // Category Tabs
+        document.querySelectorAll('.cat-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                populateCatalog(tab.dataset.cat);
+            });
+        });
+
+        // Mode Toggles
+        document.getElementById('btnMode3D').addEventListener('click', () => {
+            AudioFX.playClick();
+            state.mode = '3D';
+            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('btnMode3D').classList.add('active');
+            document.getElementById('blueprint-canvas').style.display = 'none';
+            document.getElementById('viewport-container').style.display = 'block';
+            rebuildBuilding();
+        });
+
+        document.getElementById('btnMode2D').addEventListener('click', () => {
+            AudioFX.playClick();
+            state.mode = '2D';
+            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('btnMode2D').classList.add('active');
+            document.getElementById('viewport-container').style.display = 'none';
+            document.getElementById('blueprint-canvas').style.display = 'block';
+            draw2DBlueprint();
+        });
+
+        document.getElementById('btnModeWalk').addEventListener('click', enterWalkMode);
+
+        // Building Dimension Sliders
+        document.getElementById('sliderWidth').addEventListener('input', (e) => {
+            state.width = parseFloat(e.target.value);
+            document.getElementById('valWidth').textContent = state.width + ' m';
+            rebuildBuilding();
+            draw2DBlueprint();
+        });
+
+        document.getElementById('sliderDepth').addEventListener('input', (e) => {
+            state.depth = parseFloat(e.target.value);
+            document.getElementById('valDepth').textContent = state.depth + ' m';
+            rebuildBuilding();
+            draw2DBlueprint();
+        });
+
+        document.getElementById('sliderHeight').addEventListener('input', (e) => {
+            state.height = parseFloat(e.target.value);
+            document.getElementById('valHeight').textContent = state.height.toFixed(1) + ' m';
+            rebuildBuilding();
+        });
+
+        document.getElementById('sliderFloors').addEventListener('input', (e) => {
+            state.floors = parseInt(e.target.value);
+            document.getElementById('valFloors').textContent = state.floors + (state.floors > 1 ? ' Andares' : ' Andar');
+            document.getElementById('buildingTypeBadge').textContent = state.floors > 1 ? 'Edifício' : 'Casa';
+            rebuildBuilding();
+        });
+
+        document.getElementById('selectFloorView').addEventListener('change', (e) => {
+            state.activeFloor = e.target.value;
+            rebuildBuilding();
+            draw2DBlueprint();
+        });
+
+        // Quick Preset Buttons
+        document.getElementById('btnPresetHouse').addEventListener('click', loadPresetHouse);
+        document.getElementById('btnPresetBuilding').addEventListener('click', loadPresetBuilding);
+        document.getElementById('btnClearAll').addEventListener('click', () => {
+            if (confirm('Deseja limpar todos os móveis e começar um terreno limpo?')) {
+                clearAllItems();
+                showToast('Terreno limpo!');
+            }
+        });
+
+        document.getElementById('btnToggleDayNight').addEventListener('click', () => {
+            AudioFX.playClick();
+            state.isNight = !state.isNight;
+            if (state.isNight) {
+                scene.background.setHex(0x020617);
+                scene.fog.color.setHex(0x020617);
+                ambientLight.intensity = 0.15;
+                sunLight.intensity = 0.05;
+                showToast('🌙 Modo Noturno ativado: As luzes internas se destacam!');
+            } else {
+                scene.background.setHex(0x0f172a);
+                scene.fog.color.setHex(0x0f172a);
+                ambientLight.intensity = 0.65;
+                sunLight.intensity = 1.2;
+                showToast('☀️ Modo Diurno ativado');
+            }
+        });
+
+        document.getElementById('btnRotateItem').addEventListener('click', rotateSelectedItem);
+        document.getElementById('btnDeleteItem').addEventListener('click', deleteSelectedItem);
+
+        // Raycasting for 3D selection in Orbit view
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+
+        window.addEventListener('pointerdown', (e) => {
+            if (state.mode !== '3D') return;
+            // Ignore clicks on panels
+            if (e.target.closest('.top-navbar') || e.target.closest('.catalog-panel') || e.target.closest('.properties-panel')) return;
+
+            mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(itemsGroup.children, true);
+
+            if (intersects.length > 0) {
+                let topObj = intersects[0].object;
+                while (topObj.parent && topObj.parent !== itemsGroup) {
+                    topObj = topObj.parent;
+                }
+                if (topObj.userData.itemRecord) {
+                    selectItem(topObj.userData.itemRecord);
+                }
+            } else {
+                selectItem(null);
+            }
+        });
+
+        // Toast Helper
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.classList.add('show');
+            clearTimeout(toast.timer);
+            toast.timer = setTimeout(() => toast.classList.remove('show'), 2800);
+        }
+
+        // Window Resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            draw2DBlueprint();
+        });
+
+        /* =========================================================================
+           Main Animation Loop (60 FPS)
+           ========================================================================= */
+        const clock = new THREE.Clock();
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const delta = clock.getDelta();
+
+            // First Person Movement Physics
+            if (state.mode === 'WALK' && fpsControls.isLocked) {
+                fpsState.velocity.x -= fpsState.velocity.x * 10.0 * delta;
+                fpsState.velocity.z -= fpsState.velocity.z * 10.0 * delta;
+
+                fpsState.direction.z = Number(fpsState.moveForward) - Number(fpsState.moveBackward);
+                fpsState.direction.x = Number(fpsState.moveRight) - Number(fpsState.moveLeft);
+                fpsState.direction.normalize();
+
+                const actualSpeed = fpsState.speed * fpsState.sprint;
+                if (fpsState.moveForward || fpsState.moveBackward) fpsState.velocity.z -= fpsState.direction.z * actualSpeed * delta * 10.0;
+                if (fpsState.moveLeft || fpsState.moveRight) fpsState.velocity.x -= fpsState.direction.x * actualSpeed * delta * 10.0;
+
+                fpsControls.moveRight(-fpsState.velocity.x * delta);
+                fpsControls.moveForward(-fpsState.velocity.z * delta);
+
+                // Limita para não sair do terreno
+                const limitX = state.width * 1.5;
+                const limitZ = state.depth * 1.5;
+                camera.position.x = Math.max(-limitX, Math.min(limitX, camera.position.x));
+                camera.position.z = Math.max(-limitZ, Math.min(limitZ, camera.position.z));
+            } else if (state.mode === '3D') {
+                orbitControls.update();
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        // Init
+        populateCatalog();
+        loadPresetHouse();
+        animate();
+    </script>
+</body>
+</html>
