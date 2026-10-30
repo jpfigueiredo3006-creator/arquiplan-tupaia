@@ -1,0 +1,101 @@
+{
+  "modelo": "TupãIA v2.7 Alta Paulista - Base Comprovada",
+  "versao": "2.7.0",
+  "data_atualizacao": "2026-10-22",
+  "compromisso_veracidade": "Todas as respostas e estatísticas são verificadas com base em órgãos oficiais governamentais e acadêmicos.",
+  "fontes_oficiais_consultadas": [
+    "IBGE (Instituto Brasileiro de Geografia e Estatística) - Censo Demográfico 2022 e Cempre",
+    "Fundação SEADE (Sistema Estadual de Análise de Dados de SP)",
+    "Secretaria da Cultura, Economia e Indústria Criativas do Estado de SP (SISEM-SP)",
+    "Atlas do Desenvolvimento Humano no Brasil (PNUD / IPEA / FJP)",
+    "MEC (Ministério da Educação / e-MEC)",
+    "Secretaria de Segurança Pública de SP (SSP-SP)",
+    "Ministério da Saúde (CNES)",
+    "Prefeitura e Câmara Municipal da Estância Turística de Tupã"
+  ],
+  "municipio": {
+    "nome_oficial": "Estância Turística de Tupã",
+    "estado": "São Paulo (SP)",
+    "regiao": "Alta Paulista / Mesorregião de Marília",
+    "data_fundacao": "1929-10-12",
+    "fundador": "Luiz de Sousa Leão",
+    "origem_nome": "Tupi-Guarani (Deus do Trovão / Espírito Bom)",
+    "gentilico": "Tupãense",
+    "populacao_censo_2022": 63928,
+    "area_territorial_km2": 628.51,
+    "densidade_demografica_hab_km2": 101.71,
+    "altitude_media_metros": 508,
+    "distancia_capital_sp_km": 430,
+    "principal_rodovia": "SP-294 (Rodovia Comandante João Ribeiro de Barros)",
+    "distritos_oficiais": [
+      "Varpa (Colônia da Letônia, fundada em 1928)",
+      "Parnaso (Tradição ferroviária)",
+      "Universo (Comunidade rural, inaugurada em 1949)"
+    ]
+  },
+  "indicadores_socioeconomicos_comprovados": {
+    "pib_per_capita": "R$ 48.934,77 anuais por habitante (IBGE)",
+    "salario_medio_formal": "R$ 3.080,73 mensais (IBGE / Cempre)",
+    "salarios_minimos_equivalentes": "2 a 2,2 salários mínimos",
+    "idhm_geral": 0.771,
+    "classificacao_idhm": "Alto Desenvolvimento Humano",
+    "idhm_longevidade": 0.852,
+    "idhm_renda": 0.764,
+    "idhm_educacao": 0.704,
+    "ranking_sp": "107º lugar entre 645 municípios paulistas",
+    "ranking_brasil": "220º lugar entre os 5.570 municípios brasileiros"
+  },
+  "pilares_economicos": [
+    "Capital Nacional do Amendoim: Maior polo produtor e exportador do grão no país",
+    "Avicultura de Postura: Cinturão de produção de ovos comerciais",
+    "Agropecuária diversificada: Cana-de-açúcar, milho, soja, seringueira e café",
+    "Polo regional de Comércio, Saúde e Ensino Superior"
+  ],
+  "educacao_superior": [
+    "FADAP / FAP (Faculdade da Alta Paulista): Direito, Administração, Psicologia, Ciências Contábeis, etc.",
+    "UNESP (Universidade Estadual Paulista - Câmpus de Tupã): Engenharia de Biossistemas e Administração",
+    "ETEC Professor Massuyuki Kawano (Centro Paula Souza)"
+  ],
+  "saude_publica": [
+    "Santa Casa de Misericórdia de Tupã (Hospital geral com UTI e atendimento SUS)",
+    "Hospital São Francisco",
+    "UPA 24 Horas (Unidade de Pronto Atendimento)",
+    "Ambulatório Médico de Especialidades (AME Tupã)"
+  ],
+  "patrimonio_e_turismo": [
+    {
+      "nome": "Museu Histórico e Pedagógico Índia Vanuíre",
+      "tipo": "Etnografia e Memória Indígena",
+      "acervo_oficial": "Aproximadamente 38 mil itens de povos indígenas do Brasil (ênfase em Kaingang e Krenak)",
+      "local": "Rua Coroados, 521 - Centro",
+      "entrada": "Gratuita (terça a domingo)"
+    },
+    {
+      "nome": "Solar Luiz de Sousa Leão",
+      "tipo": "Patrimônio Histórico",
+      "descricao": "Residência original do fundador com bosque de árvores nativas preservadas"
+    },
+    {
+      "nome": "Igreja Matriz de São Pedro Apóstolo",
+      "tipo": "Patrimônio Religioso e Arquitetônico",
+      "local": "Praça da Bandeira",
+      "descricao": "Vitrais artísticos e pinturas sacras do padroeiro da cidade"
+    },
+    {
+      "nome": "Praça dos 100 Anos da Imigração Japonesa",
+      "tipo": "Cultural",
+      "descricao": "Paisagismo e torii oriental em tributo à comunidade nikkei tupãense"
+    },
+    {
+      "nome": "Feira da Lua",
+      "tipo": "Gastronomia e Cultura Noturna",
+      "local": "Praça da Bandeira",
+      "destaques": "Pastéis, espetinhos, comidas orientais e doces de amendoim"
+    },
+    {
+      "nome": "Distrito de Varpa & Museu Janis Erdbergs",
+      "tipo": "Colônia de Imigração da Letônia",
+      "descricao": "Fundada em 1928, acervo dos pioneiros letos, queijos, pães e ecoturismo na Fazenda Palma"
+    }
+  ]
+}
