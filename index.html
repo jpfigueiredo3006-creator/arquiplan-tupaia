@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TupãIA - Inteligência Artificial da Estância Turística de Tupã</title>
+    <meta name="description" content="TupãIA: O modelo de inteligência artificial especialista em história, turismo, distritos, cultura e economia da cidade de Tupã - SP.">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="style.css?v=2.7">
+</head>
+<body data-theme="dark">
+    <div class="app-layout">
+        
+        <!-- SIDEBAR -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="ai-brand">
+                    <div class="ai-logo-icon">
+                        <span class="sparkle">✦</span>
+                    </div>
+                    <div class="ai-brand-text">
+                        <h2>Tupã<span>IA</span></h2>
+                        <span class="model-badge">v2.5 Alta Paulista</span>
+                    </div>
+                </div>
+                <button class="sidebar-close" id="sidebarClose" aria-label="Fechar Barra">✕</button>
+            </div>
+
+            <!-- Botão Nova Conversa -->
+            <button class="new-chat-btn" id="newChatBtn">
+                <span class="icon">+</span> Nova Pergunta
+            </button>
+            <a href="planta_edificios.html" class="new-chat-btn" style="text-decoration:none; margin-top:8px; background:linear-gradient(135deg, #10b981, #059669); color:#fff; display:flex; align-items:center; justify-content:center; gap:8px;">
+                <span>🏗️</span> Construtor 3D de Plantas
+            </a>
+
+            <!-- Categorias de Conhecimento Treinadas -->
+            <div class="sidebar-section">
+                <span class="sidebar-subtitle">Tópicos Treinados</span>
+                <nav class="trained-topics">
+                    <button class="topic-btn" data-prompt="Me conte a história da fundação de Tupã e quem foi Luiz de Souza Leão">
+                        <span>🏛️</span> História & Fundação
+                    </button>
+                    <button class="topic-btn" data-prompt="Qual a história e a importância do Museu Índia Vanuíre e dos povos indígenas de Tupã?">
+                        <span>🏹</span> Museu Índia Vanuíre
+                    </button>
+                    <button class="topic-btn" data-prompt="Fale sobre o distrito de Varpa, a colônia da Letônia e seus atrativos">
+                        <span>🇱🇻</span> Distrito de Varpa (Letônia)
+                    </button>
+                    <button class="topic-btn" data-prompt="Quais são os principais pontos turísticos de Tupã para visitar?">
+                        <span>📍</span> Pontos Turísticos
+                    </button>
+                    <button class="topic-btn" data-prompt="Por que Tupã é chamada de Capital do Amendoim e como é sua economia?">
+                        <span>🥜</span> Capital do Amendoim
+                    </button>
+                    <button class="topic-btn" data-prompt="Como é a Feira da Lua e quais são as comidas típicas de Tupã?">
+                        <span>🌙</span> Feira da Lua & Gastronomia
+                    </button>
+                    <button class="topic-btn" data-prompt="Fale sobre os distritos de Parnaso e Universo">
+                        <span>🚂</span> Distritos Parnaso & Universo
+                    </button>
+                    <button class="topic-btn" data-prompt="Quais são as faculdades, universidades e o polo educacional de Tupã?">
+                        <span>🎓</span> Faculdades & Educação (FADAP / UNESP)
+                    </button>
+                    <button class="topic-btn" data-prompt="Quais são os dados gerais de Tupã: população, clima, altitude e localização?">
+                        <span>📊</span> Dados e Estatísticas
+                    </button>
+                    <button class="topic-btn" data-prompt="Qual é a renda per capita, salário médio e o IDHM do tupãense segundo o IBGE?">
+                        <span>💰</span> Renda Per Capita & IDHM (IBGE)
+                    </button>
+                </nav>
+            </div>
+
+            <!-- Especificações do Modelo -->
+            <div class="sidebar-section model-specs">
+                <span class="sidebar-subtitle">Ficha Técnica do Modelo</span>
+                <div class="specs-card">
+                    <div class="spec-row">
+                        <span class="spec-label">Engine:</span>
+                        <span class="spec-val">Tupã-Neural v2.5</span>
+                    </div>
+                    <div class="spec-row">
+                        <span class="spec-label">Base:</span>
+                        <span class="spec-val">História & Alta Paulista</span>
+                    </div>
+                    <div class="spec-row">
+                        <span class="spec-label">Status:</span>
+                        <span class="spec-val status-online">● Online & Pronto</span>
+                    </div>
+                    <div class="spec-row">
+                        <span class="spec-label">Voz Neural:</span>
+                        <span class="spec-val">Português (BR)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer do Sidebar -->
+            <div class="sidebar-footer">
+                <button class="theme-btn" id="themeToggle" title="Mudar Tema">
+                    <span id="themeIcon">☀️ Modo Claro</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- ÁREA PRINCIPAL -->
+        <main class="main-content">
+            
+            <!-- Barra Superior do Chat -->
+            <header class="chat-topbar">
+                <div class="topbar-left">
+                    <button class="sidebar-toggle" id="sidebarToggle" aria-label="Abrir Menu">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </button>
+                    <div class="chat-title-info">
+                        <span class="active-model">Modelo Especialista</span>
+                        <h3>TupãIA • Conhecimento Completo de Tupã - SP</h3>
+                    </div>
+                </div>
+                <div class="topbar-right">
+                    <button class="btn-clean" id="btnDownloadData" title="Baixar base de dados completa em JSON">
+                        📥 Baixar Dados da IA
+                    </button>
+                    <button class="btn-clean" id="btnClearChat" title="Limpar conversa">
+                        🗑️ Limpar
+                    </button>
+                    <button class="btn-voice-toggle" id="btnVoiceToggle" title="Ativar/Desativar Leitura em Voz Alta">
+                        <span class="voice-icon">🔊</span> Leitura de Voz: <strong id="voiceStatus">Ativada</strong>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Container das Mensagens -->
+            <div class="chat-messages-container" id="chatContainer">
+                
+                <!-- Mensagem de Boas-Vindas da IA -->
+                <div class="message ai-message" id="welcomeMessage">
+                    <div class="avatar ai-avatar">✦</div>
+                    <div class="message-body">
+                        <div class="message-sender">
+                            <strong>TupãIA</strong>
+                            <span class="msg-badge">Assistente Oficial</span>
+                            <span class="msg-time">Agora</span>
+                        </div>
+                        <div class="message-text">
+                            <p>👋 <strong>Olá! Eu sou a TupãIA</strong>, o modelo de Inteligência Artificial especializado na <strong>Estância Turística de Tupã - SP</strong>.</p>
+                            <p>Meu sistema foi treinado com o acervo histórico, pontos turísticos, dados sobre os povos indígenas Kaingang e Krenak, a imigração japonesa e letã em Varpa, os distritos de Parnaso e Universo, a economia da Capital do Amendoim, festas tradicionais e o polo universitário (UNESP e FADAP/FAP).</p>
+                            
+                            <p class="suggestions-lead">O que você gostaria de explorar hoje? Escolha uma pergunta rápida ou digite abaixo:</p>
+                            
+                            <div class="quick-prompts-grid">
+                                <button class="quick-prompt-chip" data-prompt="Como foi fundada a cidade de Tupã e qual a origem do seu nome?">
+                                    🏛️ Como Tupã foi fundada e qual a origem do nome?
+                                </button>
+                                <button class="quick-prompt-chip" data-prompt="Quais são as atrações imperdíveis para visitar em Tupã?">
+                                    📍 Quais são os principais pontos turísticos?
+                                </button>
+                                <button class="quick-prompt-chip" data-prompt="O que tem no distrito de Varpa e por que ele é tão famoso?">
+                                    🇱🇻 Conte tudo sobre a colônia letã de Varpa
+                                </button>
+                                <button class="quick-prompt-chip" data-prompt="Por que Tupã é a Capital do Amendoim?">
+                                    🥜 Por que Tupã é a Capital do Amendoim?
+                                </button>
+                                <button class="quick-prompt-chip" data-prompt="Quem foi Índia Vanuíre e como funciona o Museu?">
+                                    🏹 Quem foi Índia Vanuíre e o que ver no Museu?
+                                </button>
+                                <button class="quick-prompt-chip" data-prompt="Quais são as faculdades e universidades em Tupã?">
+                                    🎓 Fale sobre as faculdades e a FADAP/FAP e UNESP
+                                </button>
+                                <button class="quick-prompt-chip" data-prompt="Qual é a renda per capita, salário médio e o IDHM do tupãense segundo o IBGE?">
+                                    💰 Qual a renda per capita e salário médio em Tupã?
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pergunta e Resposta Incorporada na IA sobre Renda Per Capita -->
+                <div class="message user-message">
+                    <div class="avatar user-avatar">U</div>
+                    <div class="message-body">
+                        <div class="message-sender">
+                            <strong>Você</strong>
+                            <span class="msg-time">Pergunta</span>
+                        </div>
+                        <div class="message-text">
+                            <p>Como é a renda per capita do tupãense?</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="message ai-message">
+                    <div class="avatar ai-avatar">✦</div>
+                    <div class="message-body">
+                        <div class="message-sender">
+                            <strong>TupãIA</strong>
+                            <span class="msg-badge">Informação Verificada</span>
+                            <span class="msg-time">Resposta Oficial</span>
+                        </div>
+                        <div class="message-text">
+                            <div class="verified-tag">✅ Informação Comprovada</div>
+                            <p><strong>💰 Renda Per Capita e Indicadores Econômicos de Tupã - SP:</strong></p>
+                            <p>Com base nos dados oficiais mais recentes consolidados pelo <strong>IBGE</strong> e pelo <strong>Atlas do Desenvolvimento Humano</strong>:</p>
+                            <ul>
+                                <li><strong>PIB per Capita:</strong> Está em aproximadamente <strong>R$ 48.934,77 por habitante ao ano</strong>, refletindo a riqueza gerada pela economia da cidade (com destaque para a agroindústria do amendoim, comércio e setor de serviços).</li>
+                                <li><strong>Salário Médio Formal:</strong> A remuneração média dos trabalhadores com carteira assinada na cidade é de <strong>R$ 3.080,73 mensais</strong> (cerca de 2 a 2,2 salários mínimos).</li>
+                                <li><strong>IDHM (Índice de Desenvolvimento Humano):</strong> Tupã possui uma pontuação de <strong>0,771</strong>, classificada na faixa de <strong>Alto Desenvolvimento Humano</strong>.</li>
+                            </ul>
+                            <div class="highlight-box">
+                                📈 <strong>Detalhamento das Dimensões do IDHM:</strong>
+                                <ul>
+                                    <li><strong>Longevidade:</strong> 0,852 (muito alto, indicando excelente expectativa de vida)</li>
+                                    <li><strong>Renda:</strong> 0,764 (alto padrão de renda per capita municipal)</li>
+                                    <li><strong>Educação:</strong> 0,704 (alto, impulsionado pela rede escolar e polos universitários como FADAP/FAP e UNESP)</li>
+                                </ul>
+                                🏆 Tupã ocupa a <strong>107ª colocação</strong> no ranking de desenvolvimento humano entre os 645 municípios do Estado de São Paulo e a <strong>220ª no Brasil</strong>!
+                            </div>
+                            <div class="sources-box">
+                                <strong>📌 Fonte Oficial Comprovada:</strong> Censo e Pesquisas Econômicas IBGE & PNUD (Programa das Nações Unidas para o Desenvolvimento).
+                            </div>
+                            <div class="msg-actions">
+                                <button class="action-chip-btn btn-copy" title="Copiar resposta">📋 Copiar</button>
+                                <button class="action-chip-btn btn-tts" title="Ouvir resposta">🔊 Ouvir</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Barra Inferior de Entrada do Usuário -->
+            <div class="chat-input-wrapper">
+                <form class="chat-input-form" id="chatForm">
+                    <div class="input-container">
+                        <textarea 
+                            id="userInput" 
+                            rows="1" 
+                            placeholder="Faça uma pergunta sobre a cidade de Tupã (história, turismo, distritos, faculdades, amendoim)..." 
+                            aria-label="Mensagem"></textarea>
+                        
+                        <div class="input-actions">
+                            <button type="submit" class="btn-send" id="btnSend" aria-label="Enviar mensagem">
+                                <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+                <div class="input-disclaimer">
+                    <span>TupãIA v2.5 • Desenvolvido para a disciplina de Desenvolvimento Web (Aula Web)</span>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script src="script.js?v=2.7"></script>
+</body>
+</html>
