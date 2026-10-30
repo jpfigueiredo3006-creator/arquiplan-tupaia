@@ -1,0 +1,10 @@
+# Dependências e caches
+node_modules/
+.vercel
+.env
+.env.local
+.env.*.local
+
+# Arquivos do sistema
+.DS_Store
+Thumbs.db
